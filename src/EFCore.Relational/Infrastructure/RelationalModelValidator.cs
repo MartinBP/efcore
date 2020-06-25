@@ -75,15 +75,30 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         {
             foreach (var dbFunction in model.GetDbFunctions())
             {
-                var methodInfo = dbFunction.MethodInfo;
-
-                if (dbFunction.TypeMapping == null
-                    && dbFunction.ReturnEntityType == null)
+                if (dbFunction.IsScalar)
                 {
-                    throw new InvalidOperationException(
-                        RelationalStrings.DbFunctionInvalidReturnType(
-                            methodInfo.DisplayName(),
-                            methodInfo.ReturnType.ShortDisplayName()));
+                    if (dbFunction.TypeMapping == null)
+                    {
+                        throw new InvalidOperationException(
+                            RelationalStrings.DbFunctionInvalidReturnType(
+                                dbFunction.Name,
+                                dbFunction.ReturnType.ShortDisplayName()));
+                    }
+                }
+                else
+                {
+                    var elementType = dbFunction.ReturnType.GetGenericArguments()[0];
+                    var entityType = model.FindEntityType(elementType);
+                    if (entityType?.IsOwned() == true || ((IConventionModel)model).IsOwned(elementType))
+                    {
+                        throw new InvalidOperationException(RelationalStrings.DbFunctionInvalidIQueryableOwnedReturnType(
+                            dbFunction.Name, elementType.ShortDisplayName()));
+                    }
+
+                    if (entityType == null)
+                    {
+                        throw new InvalidOperationException();
+                    }
                 }
 
                 foreach (var parameter in dbFunction.Parameters)
@@ -93,7 +108,7 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
                         throw new InvalidOperationException(
                             RelationalStrings.DbFunctionInvalidParameterType(
                                 parameter.Name,
-                                methodInfo.DisplayName(),
+                                dbFunction.Name,
                                 parameter.ClrType.ShortDisplayName()));
                     }
                 }

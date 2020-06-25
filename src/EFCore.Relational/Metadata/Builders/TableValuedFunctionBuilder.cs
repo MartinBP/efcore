@@ -12,7 +12,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
     /// <summary>
     ///     Provides a simple API for configuring a <see cref="IMutableDbFunction" />.
     /// </summary>
-    public class DbFunctionBuilder : DbFunctionBuilderBase
+    public class TableValuedFunctionBuilder : DbFunctionBuilderBase
     {
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -21,7 +21,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
         [EntityFrameworkInternal]
-        public DbFunctionBuilder([NotNull] IMutableDbFunction function)
+        public TableValuedFunctionBuilder([NotNull] IMutableDbFunction function)
             : base(function)
         {
         }
@@ -31,36 +31,16 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         /// </summary>
         /// <param name="name"> The name of the function in the database. </param>
         /// <returns> The same builder instance so that multiple configuration calls can be chained. </returns>
-        public new virtual DbFunctionBuilder HasName([NotNull] string name)
-            => (DbFunctionBuilder)base.HasName(name);
+        public new virtual TableValuedFunctionBuilder HasName([NotNull] string name)
+            => (TableValuedFunctionBuilder)base.HasName(name);
 
         /// <summary>
         ///     Sets the schema of the database function.
         /// </summary>
         /// <param name="schema"> The schema of the function in the database. </param>
         /// <returns> The same builder instance so that multiple configuration calls can be chained. </returns>
-        public new virtual DbFunctionBuilder HasSchema([CanBeNull] string schema)
-            => (DbFunctionBuilder)base.HasSchema(schema);
-
-        /// <summary>
-        ///     Marks whether the database function is built-in.
-        /// </summary>
-        /// <param name="builtIn"> The value indicating wheather the database function is built-in. </param>
-        /// <returns> The same builder instance so that multiple configuration calls can be chained. </returns>
-        public new virtual DbFunctionBuilder IsBuiltIn(bool builtIn = true)
-            => (DbFunctionBuilder)base.IsBuiltIn(builtIn);
-
-        /// <summary>
-        ///     Sets the return store type of the database function.
-        /// </summary>
-        /// <param name="storeType"> The return store type of the function in the database. </param>
-        /// <returns> The same builder instance so that multiple configuration calls can be chained. </returns>
-        public virtual DbFunctionBuilder HasStoreType([CanBeNull] string storeType)
-        {
-            Builder.HasStoreType(storeType, ConfigurationSource.Explicit);
-
-            return this;
-        }
+        public new virtual TableValuedFunctionBuilder HasSchema([CanBeNull] string schema)
+            => (TableValuedFunctionBuilder)base.HasSchema(schema);
 
         /// <summary>
         ///     <para>
@@ -75,7 +55,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         /// </summary>
         /// <param name="translation"> The translation to use. </param>
         /// <returns> The same builder instance so that multiple configuration calls can be chained. </returns>
-        public new virtual DbFunctionBuilder HasTranslation([NotNull] Func<IReadOnlyCollection<SqlExpression>, SqlExpression> translation)
-            => (DbFunctionBuilder)base.HasTranslation(translation);
+        public new virtual TableValuedFunctionBuilder HasTranslation(
+            [NotNull] Func<IReadOnlyCollection<SqlExpression>, SqlExpression> translation)
+            => (TableValuedFunctionBuilder)base.HasTranslation(translation);
     }
 }

@@ -64,14 +64,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
             }
 
             var model = function.Model;
-            IConventionEntityTypeBuilder entityTypeBuilder;
             var entityType = model.FindEntityType(elementType);
             if (entityType?.IsOwned() == true || model.IsOwned(elementType))
             {
-                throw new InvalidOperationException(RelationalStrings.DbFunctionInvalidIQueryableOwnedReturnType(
-                    function.Name, function.ReturnType.ShortDisplayName()));
+                return;
             }
 
+            IConventionEntityTypeBuilder entityTypeBuilder;
             if (entityType != null)
             {
                 entityTypeBuilder = entityType.Builder;
@@ -85,8 +84,10 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
                 }
             }
 
-            entityTypeBuilder.ToTable(null);
-            entityTypeBuilder.HasNoKey();
+            if (entityType.GetFunctionName() == null)
+            {
+                entityTypeBuilder.ToTable(null);
+            }
         }
     }
 }

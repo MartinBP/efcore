@@ -643,16 +643,18 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 = typeof(MyDerivedContext)
                     .GetRuntimeMethod(nameof(MyDerivedContext.QueryableNoParams), Array.Empty<Type>());
 
-            IDbFunction function = modelBuilder.HasDbFunction(queryableNoParams).Metadata;
+            var functionName = modelBuilder.HasDbFunction(queryableNoParams).Metadata.ModelName;
 
             var model = modelBuilder.FinalizeModel();
 
-            function = model.FindDbFunction(function.ModelName);
+            var function = (ITableValuedFunction)model.FindDbFunction(functionName);
             var entityType = model.FindEntityType(typeof(Foo));
 
             Assert.False(function.IsScalar);
             Assert.False(function.IsAggregate);
-            Assert.Same(entityType, function.ReturnEntityType);
+            var mapping = function.EntityTypeMappings.Single();
+            Assert.False(mapping.IsDefaultFunctionMapping);
+            Assert.Same(entityType, mapping.EntityType);
         }
 
         [ConditionalFact]
@@ -799,6 +801,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             conventionSet.ModelInitializedConventions.Add(dbFunctionAttributeConvention);
             conventionSet.ModelFinalizingConventions.Add(dbFunctionAttributeConvention);
             conventionSet.ModelFinalizingConventions.Add(new DbFunctionTypeMappingConvention(dependencies, relationalDependencies));
+            conventionSet.ModelFinalizingConventions.Add(new TableValuedDbFunctionConvention(dependencies, relationalDependencies));
+            conventionSet.ModelFinalizedConventions.Add(new RelationalModelConvention(dependencies, relationalDependencies));
 
             return new ModelBuilder(conventionSet);
         }

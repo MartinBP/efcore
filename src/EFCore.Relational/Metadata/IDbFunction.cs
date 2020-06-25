@@ -56,13 +56,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         bool IsAggregate { get; }
 
         /// <summary>
-        ///     Gets the <see cref="IEntityType"/> returned by this table valued function.
-        /// </summary>
-        IEntityType ReturnEntityType => IsScalar
-            ? null
-            : Model.FindEntityType(ReturnType.GetGenericArguments()[0]);
-
-        /// <summary>
         ///     Gets the configured store type string.
         /// </summary>
         string StoreType { get; }

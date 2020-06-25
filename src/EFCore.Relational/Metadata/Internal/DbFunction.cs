@@ -24,7 +24,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public class DbFunction : ConventionAnnotatable, IMutableDbFunction, IConventionDbFunction
+    public class DbFunction : ConventionAnnotatable, IMutableDbFunction, IConventionDbFunction, ITableValuedFunction
     {
         private readonly List<DbFunctionParameter> _parameters;
         private string _schema;
@@ -41,7 +41,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         private ConfigurationSource? _storeTypeConfigurationSource;
         private ConfigurationSource? _typeMappingConfigurationSource;
         private ConfigurationSource? _translationConfigurationSource;
-        private IEntityType _queryableEntityType;
 
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -123,6 +122,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 
         /// <inheritdoc />
         public virtual IMutableModel Model { get; }
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public virtual IRelationalModel RelationalModel { get; [param: NotNull] set; }
 
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -262,27 +269,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 
         /// <inheritdoc />
         public virtual bool IsAggregate { get; }
-
-        private IEntityType ReturnEntityType
-        {
-            get
-            {
-                if (IsScalar)
-                {
-                    return null;
-                }
-
-                if (_queryableEntityType == null)
-                {
-                    _queryableEntityType = Model.FindEntityType(ReturnType.GetGenericArguments()[0]);
-                }
-
-                return _queryableEntityType;
-            }
-
-            [param: CanBeNull]
-            set => _queryableEntityType = value;
-        }
 
         /// <inheritdoc />
         [DebuggerStepThrough]
@@ -541,6 +527,30 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         ///     any release. You should only use it directly in your code with extreme caution and knowing that
         ///     doing so can result in application failures when updating to a new Entity Framework Core release.
         /// </summary>
+        public virtual SortedSet<IFunctionMapping> EntityTypeMappings { get; } = new SortedSet<IFunctionMapping>(
+            TableMappingBaseComparer.TableInstance);
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public virtual SortedDictionary<string, FunctionColumn> Columns { get; }
+            = new SortedDictionary<string, FunctionColumn>(StringComparer.Ordinal);
+
+        /// <inheritdoc/>
+        public virtual IFunctionColumn FindColumn(string name)
+            => Columns.TryGetValue(name, out var column)
+                ? column
+                : null;
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
         public override string ToString() => this.ToDebugString(MetadataDebugStringOptions.SingleLineDefault);
 
         /// <inheritdoc />
@@ -565,7 +575,11 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         }
 
         /// <inheritdoc />
-        IEntityType IDbFunction.ReturnEntityType => ReturnEntityType;
+        IRelationalModel ITableBase.Model
+        {
+            [DebuggerStepThrough]
+            get => RelationalModel;
+        }
 
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -638,5 +652,54 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         Func<IReadOnlyCollection<SqlExpression>, SqlExpression> IConventionDbFunction.SetTranslation(
             Func<IReadOnlyCollection<SqlExpression>, SqlExpression> translation, bool fromDataAnnotation)
             => SetTranslation(translation, fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention);
+
+        /// <inheritdoc />
+        // See Issue #19970
+        bool ITableBase.IsShared => false;
+
+        /// <inheritdoc />
+        IEnumerable<IFunctionMapping> ITableValuedFunction.EntityTypeMappings
+        {
+            [DebuggerStepThrough]
+            get => EntityTypeMappings;
+        }
+
+        /// <inheritdoc />
+        IEnumerable<ITableMappingBase> ITableBase.EntityTypeMappings
+        {
+            [DebuggerStepThrough]
+            get => EntityTypeMappings;
+        }
+
+        /// <inheritdoc />
+        IEnumerable<IFunctionColumn> ITableValuedFunction.Columns
+        {
+            [DebuggerStepThrough]
+            get => Columns.Values;
+        }
+
+        /// <inheritdoc />
+        IEnumerable<IColumnBase> ITableBase.Columns
+        {
+            [DebuggerStepThrough]
+            get => Columns.Values;
+        }
+
+        /// <inheritdoc />
+        [DebuggerStepThrough]
+        IColumnBase ITableBase.FindColumn(string name)
+            => FindColumn(name);
+
+        /// <inheritdoc />
+        [DebuggerStepThrough]
+        IEnumerable<IForeignKey> ITableBase.GetRowInternalForeignKeys(IEntityType entityType)
+            // See Issue #19970
+            => Enumerable.Empty<IForeignKey>();
+
+        /// <inheritdoc />
+        [DebuggerStepThrough]
+        IEnumerable<IForeignKey> ITableBase.GetReferencingRowInternalForeignKeys(IEntityType entityType)
+            // See Issue #19970
+            => Enumerable.Empty<IForeignKey>();
     }
 }
