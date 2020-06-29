@@ -23,7 +23,7 @@ namespace Microsoft.EntityFrameworkCore.Query.SqlExpressions
     public class InExpression : SqlExpression
     {
         /// <summary>
-        ///     Creates a new instance of the <see cref="InExpression" /> class.
+        ///     Creates a new instance of the <see cref="InExpression" /> class which represents a test_expression IN subquery.
         /// </summary>
         /// <param name="item"> An item to look into values. </param>
         /// <param name="negated"> A value indicating if the item should be present in the values or absent. </param>
@@ -40,7 +40,7 @@ namespace Microsoft.EntityFrameworkCore.Query.SqlExpressions
         }
 
         /// <summary>
-        ///     Creates a new instance of the <see cref="InExpression" /> class.
+        ///     Creates a new instance of the <see cref="InExpression" /> class which represents a test_expression IN values.
         /// </summary>
         /// <param name="item"> An item to look into values. </param>
         /// <param name="negated"> A value indicating if the item should be present in the values or absent. </param>
@@ -57,7 +57,7 @@ namespace Microsoft.EntityFrameworkCore.Query.SqlExpressions
         }
 
         /// <summary>
-        ///     Creates a new instance of the <see cref="InExpression" /> class.
+        ///     Creates a new instance of the <see cref="InExpression" /> class which represents a test_expression IN subquery.
         /// </summary>
         /// <param name="item"> An item to look into values. </param>
         /// <param name="subquery"> A subquery in which item is searched. </param>
@@ -73,7 +73,7 @@ namespace Microsoft.EntityFrameworkCore.Query.SqlExpressions
         }
 
         /// <summary>
-        ///     Creates a new instance of the <see cref="InExpression" /> class.
+        ///     Creates a new instance of the <see cref="InExpression" /> class which represents a test_expression IN values.
         /// </summary>
         /// <param name="item"> An item to look into values. </param>
         /// <param name="values"> A list of values in which item is searched. </param>
